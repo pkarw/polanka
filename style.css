@@ -95,12 +95,13 @@ ul { list-style: none; }
   margin-bottom: 0.5rem;
 }
 .logo-img {
-  width: clamp(200px, 55vw, 350px);
+  width: clamp(200px, 55vw, 320px);
   height: auto;
+  object-fit: contain;
   filter: drop-shadow(0 4px 15px rgba(0,0,0,0.3));
 }
 .logo-img-menu {
-  width: clamp(140px, 40vw, 240px);
+  width: clamp(120px, 35vw, 200px);
 }
 .splash-subtitle {
   font-size: clamp(0.9rem, 3vw, 1.2rem);

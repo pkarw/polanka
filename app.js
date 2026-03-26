@@ -143,11 +143,11 @@ class AudioManager {
     this.analyser.getByteFrequencyData(this._blowData);
     // Focus on low-mid frequencies (blowing is ~100-600Hz)
     let sum = 0;
-    const bins = Math.min(30, this._blowData.length);
+    const bins = Math.min(40, this._blowData.length);
     for (let i = 1; i < bins; i++) sum += this._blowData[i];
     const avg = sum / ((bins - 1) * 255);
-    // Smooth
-    this.blowLevel = this.blowLevel * 0.3 + avg * 0.7;
+    // Light smoothing to keep responsiveness
+    this.blowLevel = this.blowLevel * 0.2 + avg * 0.8;
     return this.blowLevel;
   }
 
@@ -703,6 +703,11 @@ class DandelionGame {
       }
     }, 1000);
     window.addEventListener('resize', this._onResize = () => this.resize());
+    // Touch/click fallback for blowing
+    this.canvas.addEventListener('pointerdown', this._onTouch = () => { this._touchBlowing = true; });
+    this.canvas.addEventListener('pointerup', this._onTouchEnd = () => { this._touchBlowing = false; });
+    this.canvas.addEventListener('pointerleave', this._onTouchEnd2 = () => { this._touchBlowing = false; });
+    this._touchBlowing = false;
     this.loop();
   }
 
@@ -727,63 +732,66 @@ class DandelionGame {
   }
 
   update(dt) {
-    // Get blow level
-    const blow = this.app.audio.getBlowLevel();
-    this.blowSmooth = this.blowSmooth * 0.5 + blow * 0.5;
+    // Get blow level from mic OR touch
+    const micBlow = this.app.audio.getBlowLevel();
+    const touchBlow = this._touchBlowing ? 0.15 : 0;
+    const blow = Math.max(micBlow, touchBlow);
+    this.blowSmooth = this.blowSmooth * 0.3 + blow * 0.7;
     // Update mic indicator
     const fill = document.getElementById('mic-fill-dandelion');
-    if (fill) fill.style.width = Math.min(100, this.blowSmooth * 300) + '%';
-    // Threshold for blowing
-    const isBlowing = this.blowSmooth > 0.08;
-    const blowForce = Math.min(this.blowSmooth * 3, 1);
+    if (fill) fill.style.width = Math.min(100, this.blowSmooth * 500) + '%';
+    // Lower threshold for easier detection
+    const isBlowing = this.blowSmooth > 0.03;
+    const blowForce = Math.min(this.blowSmooth * 5, 1);
     // Target zone (garden at bottom)
-    const gardenY = this.h * 0.85;
+    const gardenY = this.h * 0.82;
     const gardenCx = this.w / 2;
     const gardenR = this.w * this.level.targetSize;
+    // Release seeds one at a time while blowing
+    const attachedSeeds = this.seeds.filter(s => s.attached);
+    if (isBlowing && attachedSeeds.length > 0) {
+      // Release 1-2 seeds per frame while blowing
+      const toRelease = Math.min(attachedSeeds.length, Math.ceil(blowForce * 2));
+      for (let r = 0; r < toRelease; r++) {
+        const seed = attachedSeeds[r];
+        seed.attached = false;
+        // Always aim roughly toward garden with some spread
+        const dx = gardenCx - seed.x + (Math.random() - 0.5) * gardenR * 1.5;
+        const dy = gardenY - seed.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const speed = 40 + blowForce * 60;
+        seed.vx = (dx / dist) * speed + (Math.random() - 0.5) * 30 * blowForce;
+        seed.vy = (dy / dist) * speed * 0.5 - 10 + Math.random() * 20;
+      }
+    }
     for (const seed of this.seeds) {
-      if (seed.landed || seed.scattered) continue;
+      if (seed.landed || seed.scattered || seed.attached) continue;
       seed.wobble += dt * 2;
-      if (seed.attached) {
-        if (isBlowing) {
-          seed.attached = false;
-          // Gentle blow sends seeds toward garden, strong blow scatters
-          const toGarden = blowForce < 0.5;
-          if (toGarden) {
-            const dx = gardenCx - seed.x + (Math.random() - 0.5) * gardenR;
-            const dy = gardenY - seed.y;
-            const dist = Math.sqrt(dx * dx + dy * dy);
-            seed.vx = (dx / dist) * (30 + blowForce * 40) + (Math.random() - 0.5) * 15;
-            seed.vy = (dy / dist) * (30 + blowForce * 40) + Math.random() * 10;
-          } else {
-            seed.vx = (Math.random() - 0.5) * 120 * blowForce;
-            seed.vy = -30 - Math.random() * 60 * blowForce;
-          }
-        }
-      } else {
-        // Physics
-        seed.vy += 15 * dt; // gravity
-        seed.vx *= 0.99;
-        if (isBlowing) {
-          seed.vx += (Math.random() - 0.5) * blowForce * 30 * dt;
-          seed.vy -= blowForce * 20 * dt;
-        }
-        seed.x += seed.vx * dt;
-        seed.y += seed.vy * dt;
-        // Check garden landing
-        const dx = seed.x - gardenCx;
-        const dy = seed.y - gardenY;
-        if (Math.abs(dx) < gardenR && seed.y >= gardenY - 10) {
-          seed.landed = true;
-          seed.y = gardenY;
-          this.landed++;
-          this.particles.emit(seed.x, seed.y, 8, { color: COLORS.lime, spread: 3, rise: 1, size: 3 });
-          this.app.audio.playPop();
-        }
-        // Check out of bounds
-        if (seed.x < -20 || seed.x > this.w + 20 || seed.y < -50 || seed.y > this.h + 20) {
-          seed.scattered = true;
-          this.scattered++;
-        }
+      // Physics
+      seed.vy += 20 * dt; // gravity
+      seed.vx *= 0.995;
+      // Wind from blowing pushes seeds
+      if (isBlowing) {
+        seed.vy += blowForce * 40 * dt;
+        seed.vx += (Math.random() - 0.5) * blowForce * 50 * dt;
+      }
+      // Gentle float resistance
+      if (seed.vy > 40) seed.vy = 40;
+      seed.x += seed.vx * dt;
+      seed.y += seed.vy * dt;
+      // Check garden landing
+      const dx = seed.x - gardenCx;
+      if (Math.abs(dx) < gardenR && seed.y >= gardenY - 10) {
+        seed.landed = true;
+        seed.y = gardenY;
+        this.landed++;
+        this.particles.emit(seed.x, seed.y, 10, { color: COLORS.lime, spread: 4, rise: 1, size: 4 });
+        this.app.audio.playPop();
+      }
+      // Check out of bounds
+      if (seed.x < -30 || seed.x > this.w + 30 || seed.y > this.h + 30) {
+        seed.scattered = true;
+        this.scattered++;
       }
     }
     this.particles.update();
@@ -797,26 +805,64 @@ class DandelionGame {
     ctx.clearRect(0, 0, this.w, this.h);
     // Sky gradient
     const skyGrad = ctx.createLinearGradient(0, 0, 0, this.h);
-    skyGrad.addColorStop(0, '#4A8B6B');
-    skyGrad.addColorStop(0.5, '#5AA07B');
+    skyGrad.addColorStop(0, '#87CEEB');
+    skyGrad.addColorStop(0.4, '#A8D8A8');
+    skyGrad.addColorStop(0.7, '#5AA07B');
     skyGrad.addColorStop(1, '#3D7A5C');
     ctx.fillStyle = skyGrad;
     ctx.fillRect(0, 0, this.w, this.h);
+    // Clouds
+    const t = performance.now() * 0.0001;
+    ctx.fillStyle = 'rgba(255,255,255,0.15)';
+    for (let i = 0; i < 4; i++) {
+      const cx = ((t * (20 + i * 10) + i * 200) % (this.w + 200)) - 100;
+      const cy = 30 + i * 40;
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, 60 + i * 15, 20 + i * 5, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    // Background trees
+    const gardenY = this.h * 0.82;
+    for (let i = 0; i < 6; i++) {
+      const tx = i * this.w / 5 - 20;
+      const ty = gardenY + 10;
+      ctx.fillStyle = '#2A6B45';
+      ctx.beginPath();
+      ctx.moveTo(tx, ty);
+      ctx.lineTo(tx + 25, ty - 50 - i * 8);
+      ctx.lineTo(tx + 50, ty);
+      ctx.closePath();
+      ctx.fill();
+    }
     // Garden zone
-    const gardenY = this.h * 0.85;
     const gardenCx = this.w / 2;
     const gardenR = this.w * this.level.targetSize;
     // Ground
     ctx.fillStyle = '#2D6B50';
     ctx.fillRect(0, gardenY + 10, this.w, this.h - gardenY);
-    // Garden highlight
+    // Grass tufts
+    ctx.fillStyle = '#4A9B6B';
+    for (let i = 0; i < 20; i++) {
+      const gx = i * this.w / 19;
+      ctx.beginPath();
+      ctx.moveTo(gx - 5, gardenY + 12);
+      ctx.lineTo(gx, gardenY + 2);
+      ctx.lineTo(gx + 5, gardenY + 12);
+      ctx.fill();
+    }
+    // Garden highlight with arrow
     ctx.save();
-    ctx.globalAlpha = 0.25;
+    ctx.globalAlpha = 0.35;
     ctx.fillStyle = COLORS.lime;
     ctx.beginPath();
-    ctx.ellipse(gardenCx, gardenY + 5, gardenR, 15, 0, 0, Math.PI * 2);
+    ctx.ellipse(gardenCx, gardenY + 5, gardenR, 18, 0, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
+    // Garden label
+    ctx.fillStyle = 'rgba(232,252,89,0.5)';
+    ctx.font = '600 13px Jost';
+    ctx.textAlign = 'center';
+    ctx.fillText('OGRÓD', gardenCx, gardenY + 25);
     // Flowers in garden
     for (let i = 0; i < 5; i++) {
       const fx = gardenCx - gardenR + (i + 0.5) * (gardenR * 2 / 5);
@@ -911,6 +957,9 @@ class DandelionGame {
     this.running = false;
     clearInterval(this._timerInterval);
     window.removeEventListener('resize', this._onResize);
+    this.canvas.removeEventListener('pointerdown', this._onTouch);
+    this.canvas.removeEventListener('pointerup', this._onTouchEnd);
+    this.canvas.removeEventListener('pointerleave', this._onTouchEnd2);
   }
 }
 
@@ -929,6 +978,7 @@ class BubbleGame {
     this.isBlowing = false;
     this.score = 0;
     this.blowSmooth = 0;
+    this._touchBlowing = false;
   }
 
   start(lvlNum) {
@@ -938,22 +988,34 @@ class BubbleGame {
     this.score = 0;
     this.currentBubbleSize = 0;
     this.isBlowing = false;
+    this._touchBlowing = false;
     this.running = true;
     this._blowStartTime = 0;
     // Fish starts on left
     this.fish = {
       x: this.w * 0.08,
-      y: this.h * 0.5,
+      y: this.h * 0.55,
       targetX: this.w * 0.08,
-      targetY: this.h * 0.5,
-      size: 20,
+      targetY: this.h * 0.55,
+      size: 25,
       hopping: false,
       hopIndex: -1,
     };
     this._lastTime = performance.now();
     window.addEventListener('resize', this._onResize = () => this.resize());
-    // Touch/click to make fish hop
-    this.canvas.addEventListener('click', this._onClick = () => this.tryHopFish());
+    // Long press = blow, tap = hop fish
+    this._touchStart = 0;
+    this.canvas.addEventListener('pointerdown', this._onDown = (e) => {
+      e.preventDefault();
+      this._touchStart = performance.now();
+      this._touchBlowing = true;
+    });
+    this.canvas.addEventListener('pointerup', this._onUp = () => {
+      const dur = performance.now() - this._touchStart;
+      this._touchBlowing = false;
+      if (dur < 200) this.tryHopFish(); // short tap = hop
+    });
+    this.canvas.addEventListener('pointerleave', this._onLeave = () => { this._touchBlowing = false; });
     this.loop();
   }
 
@@ -978,26 +1040,29 @@ class BubbleGame {
   }
 
   update(dt) {
-    const blow = this.app.audio.getBlowLevel();
-    this.blowSmooth = this.blowSmooth * 0.4 + blow * 0.6;
+    const micBlow = this.app.audio.getBlowLevel();
+    const touchBlow = this._touchBlowing ? 0.15 : 0;
+    const blow = Math.max(micBlow, touchBlow);
+    this.blowSmooth = this.blowSmooth * 0.3 + blow * 0.7;
     const fill = document.getElementById('mic-fill-bubbles');
-    if (fill) fill.style.width = Math.min(100, this.blowSmooth * 300) + '%';
-    const isBlowing = this.blowSmooth > 0.08;
+    if (fill) fill.style.width = Math.min(100, this.blowSmooth * 500) + '%';
+    const isBlowing = this.blowSmooth > 0.03;
     if (isBlowing && !this.isBlowing) {
       this._blowStartTime = performance.now();
     }
     this.isBlowing = isBlowing;
     // Create/grow bubble while blowing
     if (isBlowing && this.bubbles.length < this.level.bubblesNeeded + 3) {
-      this.currentBubbleSize += dt * 30 * Math.min(this.blowSmooth * 3, 1);
-      if (this.currentBubbleSize > 60) this.currentBubbleSize = 60;
+      this.currentBubbleSize += dt * 45 * Math.min(this.blowSmooth * 5, 1);
+      if (this.currentBubbleSize > 55) this.currentBubbleSize = 55;
     } else if (!isBlowing && this.currentBubbleSize > 5) {
       // Release bubble
-      const bx = this.w * (0.2 + this.bubbles.length * 0.12);
+      const spacing = 0.7 / Math.max(this.level.bubblesNeeded, 1);
+      const bx = this.w * (0.15 + this.bubbles.length * spacing);
       this.bubbles.push({
-        x: Math.min(bx, this.w * 0.85),
-        y: this.h * 0.55,
-        r: Math.max(12, this.currentBubbleSize),
+        x: Math.min(bx, this.w * 0.82),
+        y: this.h * 0.5,
+        r: Math.max(18, this.currentBubbleSize),
         vy: -0.3,
         life: this.level.popTime,
         wobble: Math.random() * Math.PI * 2,
@@ -1061,27 +1126,69 @@ class BubbleGame {
     ctx.clearRect(0, 0, this.w, this.h);
     // Sky
     const grad = ctx.createLinearGradient(0, 0, 0, this.h);
-    grad.addColorStop(0, '#4A8B6B');
-    grad.addColorStop(0.4, '#5AA07B');
-    grad.addColorStop(0.45, '#3E8B9B');
-    grad.addColorStop(1, '#2E6B7B');
+    grad.addColorStop(0, '#87CEEB');
+    grad.addColorStop(0.3, '#6BB5D0');
+    grad.addColorStop(0.4, '#4A9BBB');
+    grad.addColorStop(1, '#1E6B8B');
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, this.w, this.h);
-    // Water surface
-    const waterY = this.h * 0.45;
-    ctx.fillStyle = 'rgba(46, 139, 139, 0.3)';
+    // Clouds
+    ctx.fillStyle = 'rgba(255,255,255,0.2)';
+    const t = performance.now() * 0.00008;
+    for (let i = 0; i < 3; i++) {
+      const cx = ((t * (30 + i * 15) + i * 250) % (this.w + 200)) - 100;
+      ctx.beginPath();
+      ctx.ellipse(cx, 25 + i * 30, 50 + i * 10, 15, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    // Banks (left and right)
+    ctx.fillStyle = '#2D6B50';
+    ctx.fillRect(0, this.h * 0.35, this.w * 0.06, this.h * 0.65);
+    ctx.fillRect(this.w * 0.92, this.h * 0.35, this.w * 0.08, this.h * 0.65);
+    // Trees on banks
+    ctx.fillStyle = '#1E5A3A';
+    for (let i = 0; i < 3; i++) {
+      ctx.beginPath(); ctx.moveTo(-5, this.h * 0.38 + i * 60);
+      ctx.lineTo(15, this.h * 0.28 + i * 60); ctx.lineTo(35, this.h * 0.38 + i * 60); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(this.w - 35, this.h * 0.38 + i * 60);
+      ctx.lineTo(this.w - 15, this.h * 0.28 + i * 60); ctx.lineTo(this.w + 5, this.h * 0.38 + i * 60); ctx.fill();
+    }
+    // Water surface with waves
+    const waterY = this.h * 0.4;
+    ctx.fillStyle = 'rgba(30, 107, 139, 0.4)';
     ctx.beginPath();
     ctx.moveTo(0, waterY);
-    for (let x = 0; x <= this.w; x += 20) {
-      ctx.lineTo(x, waterY + Math.sin(x * 0.03 + performance.now() * 0.002) * 5);
+    for (let x = 0; x <= this.w; x += 10) {
+      ctx.lineTo(x, waterY + Math.sin(x * 0.04 + performance.now() * 0.003) * 6);
     }
     ctx.lineTo(this.w, this.h);
     ctx.lineTo(0, this.h);
     ctx.closePath();
     ctx.fill();
+    // Water depth lines
+    for (let i = 1; i < 4; i++) {
+      ctx.strokeStyle = `rgba(255,255,255,${0.05 + i * 0.02})`;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      for (let x = 0; x <= this.w; x += 10) {
+        const y = waterY + i * this.h * 0.12 + Math.sin(x * 0.03 + performance.now() * 0.002 + i) * 3;
+        x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+    }
+    // Instruction text
+    if (this.bubbles.length === 0 && this.currentBubbleSize < 3) {
+      ctx.fillStyle = 'rgba(255,255,255,0.6)';
+      ctx.font = '600 16px Jost';
+      ctx.textAlign = 'center';
+      ctx.fillText('Dmuchaj lub przytrzymaj palec!', this.w / 2, this.h * 0.25);
+      ctx.font = '400 13px Jost';
+      ctx.fillText('Puść aby wypuścić bąbelek', this.w / 2, this.h * 0.25 + 22);
+    }
     // Growing bubble preview
     if (this.currentBubbleSize > 3) {
-      const bx = this.w * (0.2 + this.bubbles.length * 0.12);
+      const spacing = 0.7 / Math.max(this.level.bubblesNeeded, 1);
+      const bx = this.w * (0.15 + this.bubbles.length * spacing);
       ctx.save();
       ctx.globalAlpha = 0.5;
       ctx.strokeStyle = '#87CEEB';
@@ -1128,11 +1235,6 @@ class BubbleGame {
     }
     // Particles
     this.particles.draw(ctx);
-    // Target zone (right bank)
-    ctx.fillStyle = '#2D6B50';
-    ctx.fillRect(this.w * 0.9, waterY - 5, this.w * 0.1, this.h - waterY + 5);
-    // Left bank
-    ctx.fillRect(0, waterY - 5, this.w * 0.05, this.h - waterY + 5);
   }
 
   _drawFish(ctx, x, y) {
@@ -1174,7 +1276,9 @@ class BubbleGame {
   stop() {
     this.running = false;
     window.removeEventListener('resize', this._onResize);
-    this.canvas.removeEventListener('click', this._onClick);
+    this.canvas.removeEventListener('pointerdown', this._onDown);
+    this.canvas.removeEventListener('pointerup', this._onUp);
+    this.canvas.removeEventListener('pointerleave', this._onLeave);
   }
 }
 
