@@ -676,12 +676,12 @@ class DandelionGame {
     this.scattered = 0;
     this.time = this.level.time;
     this.running = true;
-    // Create seeds
-    const cx = this.canvas.width / 2;
-    const stemTop = this.canvas.height * 0.35;
+    // Create seeds using CSS coordinates (this.w, this.h)
+    const cx = this.w / 2;
+    const stemTop = this.h * 0.3;
     for (let i = 0; i < this.level.seeds; i++) {
       const angle = (i / this.level.seeds) * Math.PI * 2 + Math.random() * 0.3;
-      const r = 15 + Math.random() * 20;
+      const r = 12 + Math.random() * 18;
       this.seeds.push({
         x: cx + Math.cos(angle) * r,
         y: stemTop + Math.sin(angle) * r,
@@ -740,56 +740,59 @@ class DandelionGame {
     // Update mic indicator
     const fill = document.getElementById('mic-fill-dandelion');
     if (fill) fill.style.width = Math.min(100, this.blowSmooth * 500) + '%';
-    // Lower threshold for easier detection
-    const isBlowing = this.blowSmooth > 0.03;
-    const blowForce = Math.min(this.blowSmooth * 5, 1);
+    // Threshold: ignore background noise, detect actual blowing
+    const isBlowing = this.blowSmooth > 0.06;
+    const blowForce = Math.min((this.blowSmooth - 0.04) * 4, 1);
     // Target zone (garden at bottom)
     const gardenY = this.h * 0.82;
     const gardenCx = this.w / 2;
     const gardenR = this.w * this.level.targetSize;
-    // Release seeds one at a time while blowing
+    // Release seeds one at a time while blowing (every few frames)
+    this._releaseTimer = (this._releaseTimer || 0) + dt;
     const attachedSeeds = this.seeds.filter(s => s.attached);
-    if (isBlowing && attachedSeeds.length > 0) {
-      // Release 1-2 seeds per frame while blowing
-      const toRelease = Math.min(attachedSeeds.length, Math.ceil(blowForce * 2));
-      for (let r = 0; r < toRelease; r++) {
-        const seed = attachedSeeds[r];
-        seed.attached = false;
-        // Always aim roughly toward garden with some spread
-        const dx = gardenCx - seed.x + (Math.random() - 0.5) * gardenR * 1.5;
-        const dy = gardenY - seed.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        const speed = 40 + blowForce * 60;
-        seed.vx = (dx / dist) * speed + (Math.random() - 0.5) * 30 * blowForce;
-        seed.vy = (dy / dist) * speed * 0.5 - 10 + Math.random() * 20;
-      }
+    if (isBlowing && attachedSeeds.length > 0 && this._releaseTimer > 0.5) {
+      this._releaseTimer = 0;
+      const seed = attachedSeeds[0];
+      seed.attached = false;
+      // Float gently downward with slight wind
+      seed.vx = (Math.random() - 0.5) * 20;
+      seed.vy = 5 + Math.random() * 10;
     }
     for (const seed of this.seeds) {
       if (seed.landed || seed.scattered || seed.attached) continue;
       seed.wobble += dt * 2;
-      // Physics
-      seed.vy += 20 * dt; // gravity
-      seed.vx *= 0.995;
-      // Wind from blowing pushes seeds
+      // Gentle gravity — seeds float like dandelion fluff
+      seed.vy += 8 * dt;
+      seed.vx *= 0.99;
+      // Wind from blowing pushes seeds DOWN and sideways toward garden
       if (isBlowing) {
-        seed.vy += blowForce * 40 * dt;
-        seed.vx += (Math.random() - 0.5) * blowForce * 50 * dt;
+        const dx = gardenCx - seed.x;
+        seed.vx += dx * 0.3 * dt * blowForce;
+        seed.vy += blowForce * 25 * dt;
       }
-      // Gentle float resistance
-      if (seed.vy > 40) seed.vy = 40;
-      seed.x += seed.vx * dt;
+      // Float resistance — seeds don't fall too fast
+      if (seed.vy > 50) seed.vy = 50;
+      // Add wobble
+      seed.x += seed.vx * dt + Math.sin(seed.wobble) * 0.5;
       seed.y += seed.vy * dt;
-      // Check garden landing
+      // Check garden landing — generous zone
       const dx = seed.x - gardenCx;
-      if (Math.abs(dx) < gardenR && seed.y >= gardenY - 10) {
-        seed.landed = true;
-        seed.y = gardenY;
-        this.landed++;
-        this.particles.emit(seed.x, seed.y, 10, { color: COLORS.lime, spread: 4, rise: 1, size: 4 });
-        this.app.audio.playPop();
+      if (seed.y >= gardenY - 15) {
+        // Any seed that reaches ground level in the middle 80% of screen = landed
+        if (Math.abs(dx) < this.w * 0.45) {
+          seed.landed = true;
+          seed.y = gardenY;
+          this.landed++;
+          this.particles.emit(seed.x, seed.y, 10, { color: COLORS.lime, spread: 4, rise: 1, size: 4 });
+          this.app.audio.playPop();
+        } else {
+          // Seed landed outside garden — still counts as done but no points
+          seed.scattered = true;
+          this.scattered++;
+        }
       }
-      // Check out of bounds
-      if (seed.x < -30 || seed.x > this.w + 30 || seed.y > this.h + 30) {
+      // Only scatter if WAY off screen (very lenient)
+      if (seed.x < -80 || seed.x > this.w + 80 || seed.y > this.h + 50) {
         seed.scattered = true;
         this.scattered++;
       }
@@ -870,8 +873,8 @@ class DandelionGame {
       this._drawFlower(ctx, fx, fy, 6 + i % 3 * 2);
     }
     // Dandelion stem
-    const stemBase = this.h * 0.8;
-    const stemTop = this.h * 0.35;
+    const stemBase = this.h * 0.75;
+    const stemTop = this.h * 0.3;
     const stemX = this.w / 2;
     ctx.strokeStyle = '#5A9B7A';
     ctx.lineWidth = 3;
@@ -1046,7 +1049,7 @@ class BubbleGame {
     this.blowSmooth = this.blowSmooth * 0.3 + blow * 0.7;
     const fill = document.getElementById('mic-fill-bubbles');
     if (fill) fill.style.width = Math.min(100, this.blowSmooth * 500) + '%';
-    const isBlowing = this.blowSmooth > 0.03;
+    const isBlowing = this.blowSmooth > 0.06;
     if (isBlowing && !this.isBlowing) {
       this._blowStartTime = performance.now();
     }
@@ -1534,6 +1537,9 @@ class MouthGymGame {
 }
 
 // ==================== GAME: DRUM ====================
+// New mechanic: dots light up one by one. Tap the drum when a dot lights up.
+// Tap = hit (good), miss = dot passes without tap (ok, just no points).
+// Much more forgiving — counts hits, not perfection.
 class DrumGame {
   constructor(app) {
     this.app = app;
@@ -1541,10 +1547,12 @@ class DrumGame {
     this.level = {};
     this.round = 0;
     this.pattern = [];
-    this.playerPattern = [];
-    this.phase = 'listen'; // listen, play, feedback
+    this.phase = 'listen';
     this.correctRounds = 0;
-    this.patternIndex = 0;
+    this._currentDot = -1;
+    this._hits = 0;
+    this._totalBeats = 0;
+    this._tapped = false;
   }
 
   start(lvlNum) {
@@ -1552,7 +1560,6 @@ class DrumGame {
     this.round = 0;
     this.correctRounds = 0;
     this.running = true;
-    // Drum pad
     const pad = document.getElementById('drum-pad');
     pad.addEventListener('pointerdown', this._onTap = (e) => {
       e.preventDefault();
@@ -1567,26 +1574,21 @@ class DrumGame {
       return;
     }
     this.round++;
+    this._hits = 0;
+    this._tapped = false;
     document.getElementById('drum-round').textContent =
       'Runda ' + this.round + ' / ' + this.level.rounds;
-    // Generate pattern
+    // Generate simple pattern — only beats, no rests for clarity
     this.pattern = [];
     for (let i = 0; i < this.level.patternLen; i++) {
-      // 0 = beat, 1 = rest (occasional)
-      this.pattern.push(Math.random() > 0.25 ? 0 : 1);
+      this.pattern.push(0); // all beats
     }
-    // Make sure at least 2 beats
-    if (this.pattern.filter(p => p === 0).length < 2) {
-      this.pattern[0] = 0;
-      this.pattern[this.pattern.length - 1] = 0;
-    }
-    this.playerPattern = [];
-    this.patternIndex = 0;
+    this._totalBeats = this.pattern.length;
+    this._currentDot = -1;
     this.phase = 'listen';
-    document.getElementById('drum-msg').textContent = 'Posłuchaj rytmu...';
+    document.getElementById('drum-msg').textContent = 'Posłuchaj i zapamiętaj...';
     this.renderPattern();
-    // Play the pattern
-    setTimeout(() => this.playPattern(), 600);
+    setTimeout(() => this.playPattern(), 500);
   }
 
   renderPattern() {
@@ -1594,7 +1596,7 @@ class DrumGame {
     container.innerHTML = '';
     this.pattern.forEach((beat, i) => {
       const dot = document.createElement('div');
-      dot.className = 'drum-dot' + (beat === 1 ? ' rest' : '');
+      dot.className = 'drum-dot';
       dot.id = 'dot-' + i;
       container.appendChild(dot);
     });
@@ -1605,33 +1607,53 @@ class DrumGame {
     const speed = this.level.speed;
     const play = () => {
       if (i >= this.pattern.length || !this.running) return;
+      // Highlight dot
+      document.querySelectorAll('.drum-dot').forEach(d => d.classList.remove('active'));
       const dot = document.getElementById('dot-' + i);
-      if (this.pattern[i] === 0) {
+      if (dot) {
         dot.classList.add('active');
         this.app.audio.playDrum();
-        setTimeout(() => dot.classList.remove('active'), speed * 0.4);
       }
       i++;
       if (i < this.pattern.length) {
         setTimeout(play, speed);
       } else {
         setTimeout(() => {
+          document.querySelectorAll('.drum-dot').forEach(d => d.classList.remove('active'));
+          // Now player's turn — dots light up and player must tap
           this.phase = 'play';
-          this.patternIndex = 0;
-          this.playerPattern = [];
-          document.getElementById('drum-msg').textContent = 'Twoja kolej! Stukaj!';
-          this._playStartTime = performance.now();
-          this._expectedTimes = [];
-          // Calculate expected tap times
-          let t = 0;
-          for (let j = 0; j < this.pattern.length; j++) {
-            if (this.pattern[j] === 0) this._expectedTimes.push(t);
-            t += speed;
-          }
-        }, speed);
+          this._currentDot = -1;
+          document.getElementById('drum-msg').textContent = 'Twoja kolej! Stukaj gdy się świeci!';
+          setTimeout(() => this.playDotSequence(), 600);
+        }, speed * 0.6);
       }
     };
     play();
+  }
+
+  playDotSequence() {
+    this._currentDot++;
+    if (this._currentDot >= this.pattern.length) {
+      this.evaluateRound();
+      return;
+    }
+    if (!this.running) return;
+    // Light up current dot
+    document.querySelectorAll('.drum-dot').forEach(d => d.classList.remove('active'));
+    const dot = document.getElementById('dot-' + this._currentDot);
+    if (dot) dot.classList.add('active');
+    this._tapped = false;
+    // Give generous window to tap (speed + 300ms grace)
+    const window = this.level.speed + 300;
+    this._dotTimeout = setTimeout(() => {
+      // Time's up for this dot
+      if (!this._tapped) {
+        // Missed — mark as missed but continue (no penalty, just no point)
+        const d = document.getElementById('dot-' + this._currentDot);
+        if (d) { d.classList.remove('active'); d.classList.add('hit-bad'); }
+      }
+      this.playDotSequence();
+    }, window);
   }
 
   onTap() {
@@ -1640,63 +1662,36 @@ class DrumGame {
     const pad = document.getElementById('drum-pad');
     pad.classList.add('hit');
     setTimeout(() => pad.classList.remove('hit'), 100);
-    if (this.phase !== 'play') return;
-    const elapsed = performance.now() - this._playStartTime;
-    this.playerPattern.push(elapsed);
-    // Light up the next beat dot
-    let beatCount = 0;
-    for (let i = 0; i < this.pattern.length; i++) {
-      if (this.pattern[i] === 0) {
-        if (beatCount === this.playerPattern.length - 1) {
-          document.getElementById('dot-' + i).classList.add('active');
-          setTimeout(() => {
-            const d = document.getElementById('dot-' + i);
-            if (d) d.classList.remove('active');
-          }, 200);
-          break;
-        }
-        beatCount++;
-      }
+    if (this.phase !== 'play' || this._tapped) return;
+    // Player tapped while dot is active — that's a hit!
+    this._tapped = true;
+    this._hits++;
+    const dot = document.getElementById('dot-' + this._currentDot);
+    if (dot) {
+      dot.classList.remove('active');
+      dot.classList.add('hit-ok');
     }
-    // Check if done
-    const totalBeats = this.pattern.filter(p => p === 0).length;
-    if (this.playerPattern.length >= totalBeats) {
-      this.evaluateRound();
-    }
+    // Clear timeout and advance immediately
+    clearTimeout(this._dotTimeout);
+    setTimeout(() => this.playDotSequence(), 150);
   }
 
   evaluateRound() {
     this.phase = 'feedback';
-    // Compare timing
-    const expected = this._expectedTimes;
-    const player = this.playerPattern;
-    let totalError = 0;
-    for (let i = 0; i < Math.min(expected.length, player.length); i++) {
-      const diff = Math.abs(player[i] - expected[i]);
-      totalError += diff;
-    }
-    const avgError = totalError / expected.length;
-    const isGood = avgError < this.level.speed * 0.6;
-    // Visual feedback
-    const beats = this.pattern.map((b, i) => ({ beat: b, idx: i })).filter(b => b.beat === 0);
-    beats.forEach((b, i) => {
-      const dot = document.getElementById('dot-' + b.idx);
-      if (i < player.length) {
-        const diff = Math.abs(player[i] - expected[i]);
-        dot.classList.add(diff < this.level.speed * 0.5 ? 'hit-ok' : 'hit-bad');
-      }
-    });
-    if (isGood) {
+    document.querySelectorAll('.drum-dot').forEach(d => d.classList.remove('active'));
+    const ratio = this._hits / this._totalBeats;
+    if (ratio >= 0.5) {
       this.correctRounds++;
-      document.getElementById('drum-msg').textContent = 'Świetnie! 🎉';
+      document.getElementById('drum-msg').textContent =
+        ratio >= 0.9 ? 'Perfekcyjnie! 🎉' : 'Dobrze! ' + this._hits + '/' + this._totalBeats;
       this.app.audio.playSuccess();
     } else {
-      document.getElementById('drum-msg').textContent = 'Prawie! Spróbuj jeszcze!';
+      document.getElementById('drum-msg').textContent = 'Spróbuj jeszcze! ' + this._hits + '/' + this._totalBeats;
       this.app.audio.playFail();
     }
     setTimeout(() => {
       if (this.running) this.nextRound();
-    }, 1500);
+    }, 1800);
   }
 
   finish() {
@@ -1710,6 +1705,7 @@ class DrumGame {
 
   stop() {
     this.running = false;
+    clearTimeout(this._dotTimeout);
     const pad = document.getElementById('drum-pad');
     if (this._onTap) pad.removeEventListener('pointerdown', this._onTap);
   }
