@@ -10,7 +10,7 @@ Stworzone z :green_heart: dla [Polana Przygody](https://polanaprzygody.pl) — C
 
 ---
 
-[**:video_game: ZAGRAJ TERAZ**](https://pkarw.github.io/polanka/)
+[**:video_game: ZAGRAJ TERAZ**](https://polanaprzygody.github.io/polanka/)
 
 ---
 
@@ -73,7 +73,7 @@ Prozodia — "muzyka mowy" — obejmuje melodie, rytm i akcent wypowiedzi. **Log
 
 ## Jak uzywac
 
-1. [Otworz aplikacje](https://pkarw.github.io/polanka/)
+1. [Otworz aplikacje](https://polanaprzygody.github.io/polanka/)
 2. Wybierz gre z menu
 3. Gry z ikona :microphone: wymagaja dostepu do mikrofonu
 4. Usiadz z dzieckiem w spokojnym miejscu
@@ -103,6 +103,6 @@ Profesjonalna logopedia i terapia integracji sensorycznej we Wroclawiu
 
 ---
 
-[**:video_game: ZAGRAJ TERAZ**](https://pkarw.github.io/polanka/)
+[**:video_game: ZAGRAJ TERAZ**](https://polanaprzygody.github.io/polanka/)
 
 </div>
