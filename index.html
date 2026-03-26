@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#2A5C47">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="description" content="Logopedyczne mini-gry dla dzieci — ćwiczenia oddechowe, gimnastyka buzi, słuch fonematyczny, rytm i prozodia. Stworzone przez Polana Przygody.">
+  <title>Polana Przygód — Logopedyczne Gry dla Dzieci</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='80' font-size='80'>🌿</text></svg>">
+</head>
+<body>
+
+  <!-- ===== SPLASH SCREEN ===== -->
+  <div id="splash" class="screen active">
+    <div class="splash-bg"></div>
+    <div class="splash-content">
+      <div class="splash-logo">
+        <img src="polana-logo.png" alt="Polana Przygody" class="logo-img">
+      </div>
+      <p class="splash-subtitle">Logopedyczne Gry dla Dzieci</p>
+      <div class="splash-loader">
+        <div class="splash-loader-fill" id="loader-fill"></div>
+      </div>
+      <p class="splash-hint">Przygotowujemy polanę...</p>
+      <div class="splash-animals">
+        <span class="splash-animal a1">🦉</span>
+        <span class="splash-animal a2">🐸</span>
+        <span class="splash-animal a3">🦔</span>
+        <span class="splash-animal a4">🐿️</span>
+        <span class="splash-animal a5">🐻</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MAIN MENU ===== -->
+  <div id="menu" class="screen">
+    <div class="menu-bg">
+      <div class="cloud cloud-1"></div>
+      <div class="cloud cloud-2"></div>
+      <div class="cloud cloud-3"></div>
+      <div class="firefly ff1"></div>
+      <div class="firefly ff2"></div>
+      <div class="firefly ff3"></div>
+      <div class="firefly ff4"></div>
+      <div class="firefly ff5"></div>
+    </div>
+    <div class="menu-scroll">
+      <header class="menu-header">
+        <div class="menu-logo">
+          <img src="polana-logo.png" alt="Polana Przygody" class="logo-img logo-img-menu">
+        </div>
+        <p class="menu-tagline">Wybierz grę i rozpocznij przygodę!</p>
+        <div class="menu-stars-total">
+          <span class="star-icon-total">★</span>
+          <span id="total-stars">0</span><span class="stars-max"> / 15</span>
+        </div>
+      </header>
+
+      <div class="game-cards">
+        <!-- Card 1: Dandelion (Mic) -->
+        <button class="game-card" data-game="dandelion">
+          <div class="card-icon">
+            <svg viewBox="0 0 100 100" class="animal-svg">
+              <circle cx="25" cy="22" r="14" fill="#8B6914"/>
+              <circle cx="75" cy="22" r="14" fill="#8B6914"/>
+              <circle cx="25" cy="22" r="9" fill="#D4A44A"/>
+              <circle cx="75" cy="22" r="9" fill="#D4A44A"/>
+              <circle cx="50" cy="50" r="33" fill="#C4922A"/>
+              <ellipse cx="50" cy="58" rx="20" ry="14" fill="#D4A44A"/>
+              <circle cx="38" cy="42" r="5" fill="#2A3B30"/>
+              <circle cx="62" cy="42" r="5" fill="#2A3B30"/>
+              <circle cx="40" cy="40" r="2" fill="white"/>
+              <circle cx="64" cy="40" r="2" fill="white"/>
+              <ellipse cx="50" cy="52" rx="5" ry="4" fill="#2A3B30"/>
+              <path d="M44 59 Q50 66 56 59" stroke="#2A3B30" stroke-width="2" fill="none" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div class="card-badge badge-mic" title="Gra z mikrofonem">🎤</div>
+          <h3>Magiczny Dmuchawiec</h3>
+          <p>Dmuchaj delikatnie i pomóż nasionkom dotrzeć do ogrodu!</p>
+          <div class="card-stars" id="stars-dandelion"><span>☆</span><span>☆</span><span>☆</span></div>
+          <div class="card-guide">Miś Puchaty</div>
+        </button>
+
+        <!-- Card 2: Bubbles (Mic) -->
+        <button class="game-card" data-game="bubbles">
+          <div class="card-icon">
+            <svg viewBox="0 0 100 100" class="animal-svg">
+              <ellipse cx="50" cy="62" rx="33" ry="28" fill="#3D7A5C"/>
+              <circle cx="35" cy="28" r="16" fill="#3D7A5C"/>
+              <circle cx="65" cy="28" r="16" fill="#3D7A5C"/>
+              <circle cx="35" cy="26" r="11" fill="white"/>
+              <circle cx="65" cy="26" r="11" fill="white"/>
+              <circle cx="37" cy="26" r="6" fill="#2A3B30"/>
+              <circle cx="67" cy="26" r="6" fill="#2A3B30"/>
+              <circle cx="39" cy="24" r="2" fill="white"/>
+              <circle cx="69" cy="24" r="2" fill="white"/>
+              <ellipse cx="50" cy="68" rx="22" ry="16" fill="#6BAF8D"/>
+              <path d="M28 58 Q50 78 72 58" stroke="#2A3B30" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+              <circle cx="28" cy="52" r="5" fill="#E8A0BF" opacity="0.4"/>
+              <circle cx="72" cy="52" r="5" fill="#E8A0BF" opacity="0.4"/>
+            </svg>
+          </div>
+          <div class="card-badge badge-mic" title="Gra z mikrofonem">🎤</div>
+          <h3>Bąbelkowa Rzeka</h3>
+          <p>Twórz bąbelki i pomóż rybce przepłynąć rzekę!</p>
+          <div class="card-stars" id="stars-bubbles"><span>☆</span><span>☆</span><span>☆</span></div>
+          <div class="card-guide">Żabka Kumka</div>
+        </button>
+
+        <!-- Card 3: Mouth Gym -->
+        <button class="game-card" data-game="mouthgym">
+          <div class="card-icon">
+            <svg viewBox="0 0 100 100" class="animal-svg">
+              <polygon points="50,5 44,28 56,28" fill="#8B6B47"/>
+              <polygon points="28,10 34,30 22,26" fill="#8B6B47"/>
+              <polygon points="72,10 66,30 78,26" fill="#8B6B47"/>
+              <polygon points="15,25 26,38 17,42" fill="#8B6B47"/>
+              <polygon points="85,25 74,38 83,42" fill="#8B6B47"/>
+              <polygon points="10,42 24,50 14,56" fill="#8B6B47"/>
+              <polygon points="90,42 76,50 86,56" fill="#8B6B47"/>
+              <ellipse cx="50" cy="58" rx="32" ry="30" fill="#C4A882"/>
+              <ellipse cx="50" cy="64" rx="24" ry="20" fill="#E8D8C4"/>
+              <circle cx="40" cy="50" r="5" fill="#2A3B30"/>
+              <circle cx="60" cy="50" r="5" fill="#2A3B30"/>
+              <circle cx="42" cy="48" r="2" fill="white"/>
+              <circle cx="62" cy="48" r="2" fill="white"/>
+              <ellipse cx="50" cy="58" rx="4" ry="3" fill="#2A3B30"/>
+              <path d="M44 64 Q50 70 56 64" stroke="#2A3B30" stroke-width="2" fill="none" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <h3>Gimnastyka Buzi</h3>
+          <p>Ćwicz z Jeżykiem sprawność języka i warg!</p>
+          <div class="card-stars" id="stars-mouthgym"><span>☆</span><span>☆</span><span>☆</span></div>
+          <div class="card-guide">Jeżyk Kolczyk</div>
+        </button>
+
+        <!-- Card 4: Drum -->
+        <button class="game-card" data-game="drum">
+          <div class="card-icon">
+            <svg viewBox="0 0 100 100" class="animal-svg">
+              <path d="M68 72 Q92 52 82 28 Q78 14 64 22 Q54 27 58 42 Q60 50 65 55" fill="#D4722A"/>
+              <ellipse cx="44" cy="62" rx="26" ry="26" fill="#D4722A"/>
+              <ellipse cx="44" cy="68" rx="17" ry="17" fill="#FFE4C4"/>
+              <circle cx="42" cy="40" r="22" fill="#D4722A"/>
+              <polygon points="28,22 34,38 22,35" fill="#D4722A"/>
+              <polygon points="58,18 56,36 48,32" fill="#D4722A"/>
+              <polygon points="30,24 33,34 25,32" fill="#FFE4C4"/>
+              <polygon points="56,20 55,33 50,30" fill="#FFE4C4"/>
+              <circle cx="35" cy="37" r="4" fill="#2A3B30"/>
+              <circle cx="50" cy="37" r="4" fill="#2A3B30"/>
+              <circle cx="37" cy="35" r="1.5" fill="white"/>
+              <circle cx="52" cy="35" r="1.5" fill="white"/>
+              <circle cx="42" cy="44" r="3" fill="#2A3B30"/>
+              <rect x="39" y="49" width="6" height="5" rx="1.5" fill="white"/>
+            </svg>
+          </div>
+          <h3>Leśny Bębenek</h3>
+          <p>Powtórz rytm, który zagra Wiewiórka!</p>
+          <div class="card-stars" id="stars-drum"><span>☆</span><span>☆</span><span>☆</span></div>
+          <div class="card-guide">Wiewiórka Ruda</div>
+        </button>
+
+        <!-- Card 5: Memory -->
+        <button class="game-card" data-game="memory">
+          <div class="card-icon">
+            <svg viewBox="0 0 100 100" class="animal-svg">
+              <ellipse cx="50" cy="58" rx="30" ry="34" fill="#8B7355"/>
+              <ellipse cx="50" cy="68" rx="20" ry="20" fill="#BFA882"/>
+              <polygon points="24,16 34,36 18,30" fill="#8B7355"/>
+              <polygon points="76,16 66,36 82,30" fill="#8B7355"/>
+              <circle cx="38" cy="42" r="14" fill="#EFF1C5"/>
+              <circle cx="62" cy="42" r="14" fill="#EFF1C5"/>
+              <circle cx="38" cy="42" r="8" fill="#2A3B30"/>
+              <circle cx="62" cy="42" r="8" fill="#2A3B30"/>
+              <circle cx="40" cy="40" r="3" fill="white"/>
+              <circle cx="64" cy="40" r="3" fill="white"/>
+              <polygon points="50,50 46,58 54,58" fill="#E8A030"/>
+              <path d="M34 72 Q38 76 42 72" stroke="#6B5335" stroke-width="1.5" fill="none"/>
+              <path d="M46 74 Q50 78 54 74" stroke="#6B5335" stroke-width="1.5" fill="none"/>
+              <path d="M58 72 Q62 76 66 72" stroke="#6B5335" stroke-width="1.5" fill="none"/>
+            </svg>
+          </div>
+          <h3>Dźwiękowe Memory</h3>
+          <p>Znajdź pary zwierząt po ich odgłosach!</p>
+          <div class="card-stars" id="stars-memory"><span>☆</span><span>☆</span><span>☆</span></div>
+          <div class="card-guide">Sowa Mądralka</div>
+        </button>
+      </div>
+
+      <button class="btn-rules" id="btn-rules">
+        <span class="btn-rules-icon">📖</span>
+        Zasady i Ćwiczenia
+      </button>
+
+      <footer class="menu-footer">
+        <p>Stworzone z <span class="heart">♥</span> dla <a href="https://polanaprzygody.pl" target="_blank">Polana Przygody</a></p>
+        <p class="footer-sub">Centrum Rozwoju Dziecka</p>
+      </footer>
+    </div>
+  </div>
+
+  <!-- ===== GAME: DANDELION ===== -->
+  <div id="game-dandelion" class="screen game-screen">
+    <div class="game-header">
+      <button class="btn-back" data-back>
+        <svg viewBox="0 0 24 24" width="24" height="24"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <h2>Magiczny Dmuchawiec</h2>
+      <button class="btn-game-info" data-info="dandelion">
+        <svg viewBox="0 0 24 24" width="22" height="22"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none"/><path d="M12 16v-4M12 8h.01" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+    <div class="game-area">
+      <canvas id="canvas-dandelion"></canvas>
+    </div>
+    <div class="game-hud">
+      <div class="hud-level" id="hud-dandelion-level">Poziom 1</div>
+      <div class="hud-stars" id="hud-dandelion-stars"><span>☆</span><span>☆</span><span>☆</span></div>
+    </div>
+    <div class="mic-indicator" id="mic-dandelion">
+      <div class="mic-icon-wrap"><span>🎤</span></div>
+      <div class="mic-bar"><div class="mic-bar-fill" id="mic-fill-dandelion"></div></div>
+      <div class="mic-label">Dmuchaj!</div>
+    </div>
+  </div>
+
+  <!-- ===== GAME: BUBBLES ===== -->
+  <div id="game-bubbles" class="screen game-screen">
+    <div class="game-header">
+      <button class="btn-back" data-back>
+        <svg viewBox="0 0 24 24" width="24" height="24"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <h2>Bąbelkowa Rzeka</h2>
+      <button class="btn-game-info" data-info="bubbles">
+        <svg viewBox="0 0 24 24" width="22" height="22"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none"/><path d="M12 16v-4M12 8h.01" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+    <div class="game-area">
+      <canvas id="canvas-bubbles"></canvas>
+    </div>
+    <div class="game-hud">
+      <div class="hud-level" id="hud-bubbles-level">Poziom 1</div>
+      <div class="hud-stars" id="hud-bubbles-stars"><span>☆</span><span>☆</span><span>☆</span></div>
+    </div>
+    <div class="mic-indicator" id="mic-bubbles">
+      <div class="mic-icon-wrap"><span>🎤</span></div>
+      <div class="mic-bar"><div class="mic-bar-fill" id="mic-fill-bubbles"></div></div>
+      <div class="mic-label">Dmuchaj!</div>
+    </div>
+  </div>
+
+  <!-- ===== GAME: MOUTH GYM ===== -->
+  <div id="game-mouthgym" class="screen game-screen">
+    <div class="game-header">
+      <button class="btn-back" data-back>
+        <svg viewBox="0 0 24 24" width="24" height="24"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <h2>Gimnastyka Buzi</h2>
+      <button class="btn-game-info" data-info="mouthgym">
+        <svg viewBox="0 0 24 24" width="22" height="22"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none"/><path d="M12 16v-4M12 8h.01" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+    <div class="game-area mouthgym-area">
+      <canvas id="canvas-mouthgym"></canvas>
+      <div class="mouthgym-overlay">
+        <h3 class="mouthgym-name" id="mg-name">Konik</h3>
+        <p class="mouthgym-desc" id="mg-desc">Kląskaj językiem o podniebienie!</p>
+        <div class="mouthgym-timer-wrap">
+          <svg class="timer-ring" viewBox="0 0 120 120">
+            <circle cx="60" cy="60" r="52" class="timer-bg"/>
+            <circle cx="60" cy="60" r="52" class="timer-progress" id="mg-timer-ring"/>
+          </svg>
+          <span class="timer-text" id="mg-timer">8</span>
+        </div>
+        <div class="mouthgym-progress-bar">
+          <div class="mg-progress-fill" id="mg-progress"></div>
+        </div>
+        <div class="mouthgym-count" id="mg-count">1 / 6</div>
+      </div>
+    </div>
+    <div class="game-hud">
+      <div class="hud-level" id="hud-mouthgym-level">Poziom 1</div>
+      <div class="hud-stars" id="hud-mouthgym-stars"><span>☆</span><span>☆</span><span>☆</span></div>
+    </div>
+  </div>
+
+  <!-- ===== GAME: DRUM ===== -->
+  <div id="game-drum" class="screen game-screen">
+    <div class="game-header">
+      <button class="btn-back" data-back>
+        <svg viewBox="0 0 24 24" width="24" height="24"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <h2>Leśny Bębenek</h2>
+      <button class="btn-game-info" data-info="drum">
+        <svg viewBox="0 0 24 24" width="22" height="22"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none"/><path d="M12 16v-4M12 8h.01" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+    <div class="game-area drum-area">
+      <div class="drum-pattern-display" id="drum-pattern"></div>
+      <div class="drum-message" id="drum-msg">Posłuchaj rytmu...</div>
+      <button class="drum-pad" id="drum-pad">
+        <div class="drum-pad-inner">
+          <div class="drum-pad-top"></div>
+          <span class="drum-emoji">🥁</span>
+        </div>
+      </button>
+      <div class="drum-round" id="drum-round">Runda 1 / 5</div>
+    </div>
+    <div class="game-hud">
+      <div class="hud-level" id="hud-drum-level">Poziom 1</div>
+      <div class="hud-stars" id="hud-drum-stars"><span>☆</span><span>☆</span><span>☆</span></div>
+    </div>
+  </div>
+
+  <!-- ===== GAME: MEMORY ===== -->
+  <div id="game-memory" class="screen game-screen">
+    <div class="game-header">
+      <button class="btn-back" data-back>
+        <svg viewBox="0 0 24 24" width="24" height="24"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <h2>Dźwiękowe Memory</h2>
+      <button class="btn-game-info" data-info="memory">
+        <svg viewBox="0 0 24 24" width="22" height="22"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none"/><path d="M12 16v-4M12 8h.01" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+    <div class="game-area memory-area">
+      <div class="memory-stats">
+        <span id="mem-moves">Ruchy: 0</span>
+        <span id="mem-pairs">Pary: 0 / 6</span>
+      </div>
+      <div class="memory-grid" id="memory-grid"></div>
+    </div>
+    <div class="game-hud">
+      <div class="hud-level" id="hud-memory-level">Poziom 1</div>
+      <div class="hud-stars" id="hud-memory-stars"><span>☆</span><span>☆</span><span>☆</span></div>
+    </div>
+  </div>
+
+  <!-- ===== GAME COMPLETE OVERLAY ===== -->
+  <div id="game-complete" class="overlay hidden">
+    <canvas id="canvas-confetti"></canvas>
+    <div class="complete-content">
+      <div class="complete-animal" id="complete-animal"></div>
+      <h2 class="complete-title" id="complete-title">Brawo!</h2>
+      <p class="complete-msg" id="complete-msg">Świetnie Ci poszło!</p>
+      <div class="complete-stars" id="complete-stars">
+        <span class="big-star">☆</span>
+        <span class="big-star">☆</span>
+        <span class="big-star">☆</span>
+      </div>
+      <div class="complete-btns">
+        <button class="btn-complete btn-again" id="btn-again">Zagraj ponownie</button>
+        <button class="btn-complete btn-next" id="btn-next">Następny poziom</button>
+        <button class="btn-complete btn-tomenu" id="btn-tomenu">Menu</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== RULES MODAL ===== -->
+  <div id="rules-modal" class="overlay hidden">
+    <div class="rules-content">
+      <button class="btn-close" id="btn-close-rules">
+        <svg viewBox="0 0 24 24" width="28" height="28"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+      </button>
+
+      <div class="rules-header">
+        <h1>Zasady i Ćwiczenia Logopedyczne</h1>
+        <p class="rules-intro">Dowiedz się, dlaczego każda gra jest ważna dla rozwoju mowy Twojego dziecka</p>
+      </div>
+
+      <section class="rules-section">
+        <h2>Jak korzystać z aplikacji</h2>
+        <div class="rules-box rules-box-highlight">
+          <p>Aplikacja zawiera <strong>5 mini-gier logopedycznych</strong>, które w zabawny sposób ćwiczą kluczowe umiejętności potrzebne do prawidłowego rozwoju mowy.</p>
+          <h4>Wskazówki dla rodziców:</h4>
+          <ul>
+            <li>Usiądź z dzieckiem w spokojnym miejscu</li>
+            <li>Gry z ikoną 🎤 wymagają dostępu do mikrofonu</li>
+            <li>Zachęcaj do regularnych ćwiczeń (5–10 minut dziennie)</li>
+            <li>Chwal za starania, nie tylko za wyniki!</li>
+            <li>Każda gra ma 3 poziomy trudności — gwiazdki pokazują postępy</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="rules-section">
+        <h2>Ćwiczenia oddechowe</h2>
+        <div class="rules-badge">Magiczny Dmuchawiec &amp; Bąbelkowa Rzeka</div>
+        <h3>Dlaczego są ważne?</h3>
+        <p>Prawidłowy oddech to <strong>fundament mowy</strong>. Oddech mowy różni się od oddychania spoczynkowego — wymaga dłuższego, kontrolowanego wydechu ustami. Wiele dzieci z zaburzeniami mowy ma nieprawidłowy tor oddechowy: oddychają ustami zamiast nosem, mają zbyt krótki wydech lub nie potrafią modulować siły strumienia powietrza.</p>
+        <h3>Co ćwiczymy?</h3>
+        <ul>
+          <li><strong>Tor oddechowy</strong> — wdech nosem, wydech ustami</li>
+          <li><strong>Wydłużanie fazy wydechowej</strong> — im dłuższy kontrolowany wydech, tym dłuższe wypowiedzi dziecko może formułować</li>
+          <li><strong>Kontrola siły wydechu</strong> — delikatne dmuchanie wymaga innej pracy mięśni niż mocne; obie umiejętności są potrzebne do różnych głosek</li>
+          <li><strong>Kierunkowanie strumienia powietrza</strong> — precyzyjne ukierunkowanie powietrza jest kluczowe dla głosek sybilantnych (s, z, sz, ż, cz, dż)</li>
+        </ul>
+        <div class="rules-game-box">
+          <h4>Magiczny Dmuchawiec</h4>
+          <p>Dmuchaj delikatnie i równomiernie w mikrofon, aby nasionka dmuchawca poleciały do ogrodu kwiatów. Zbyt mocne dmuchanie rozprasza nasionka! <strong>Ćwiczy kontrolowany, wydłużony wydech o stałej sile.</strong></p>
+        </div>
+        <div class="rules-game-box">
+          <h4>Bąbelkowa Rzeka</h4>
+          <p>Twórz bąbelki dmuchając w mikrofon — pomagaj rybce przepłynąć rzekę skacząc po bąbelkach. Krótki wydech = małe bąbelki, długi i równomierny = duże bąbelki. <strong>Ćwiczy modulację siły i długości wydechu.</strong></p>
+        </div>
+      </section>
+
+      <section class="rules-section">
+        <h2>Gimnastyka narządów artykulacyjnych</h2>
+        <div class="rules-badge">Gimnastyka Buzi</div>
+        <h3>Dlaczego jest ważna?</h3>
+        <p>Język, wargi, żuchwa i podniebienie miękkie to <strong>narządy artykulacyjne</strong> — „narzędzia" potrzebne do mówienia. Tak jak sportowiec rozgrzewa mięśnie przed treningiem, dziecko powinno ćwiczyć sprawność narządów mowy. Niedostateczna ruchomość języka jest jedną z <strong>najczęstszych przyczyn dyslalii</strong> (nieprawidłowej artykulacji głosek).</p>
+        <h3>Co ćwiczymy?</h3>
+        <ul>
+          <li><strong>Ruchomość języka</strong> — unoszenie, opuszczanie, ruchy lateralne, wysuwanie</li>
+          <li><strong>Siła języka</strong> — dociskanie do podniebienia, policzków</li>
+          <li><strong>Precyzja ruchów</strong> — celne dotykanie określonych punktów w jamie ustnej</li>
+          <li><strong>Sprawność warg</strong> — zaokrąglanie, rozciąganie, wibracje (prychanie)</li>
+          <li><strong>Naprzemienność ruchów</strong> — szybkie przechodzenie między pozycjami (kluczowe dla płynnej mowy)</li>
+        </ul>
+        <h3>Ćwiczenia w grze:</h3>
+        <div class="exercise-list">
+          <div class="exercise-item"><strong>Konik</strong> — Kląskanie językiem o podniebienie. Wzmacnia mięsień języka, ćwiczy unoszenie do podniebienia (przygotowanie do głosek: l, sz, ż, cz, dż, r).</div>
+          <div class="exercise-item"><strong>Huśtawka</strong> — Język do nosa, język do brody. Rozciąga wędzidełko, zwiększa zakres ruchów pionowych języka.</div>
+          <div class="exercise-item"><strong>Zegar</strong> — Język w lewy kącik, w prawy kącik. Rozwija ruchy lateralne, poprawia koordynację mięśni języka.</div>
+          <div class="exercise-item"><strong>Malarz</strong> — Czubek języka przesuwa się po podniebieniu od zębów do gardła. Ćwiczy unoszenie czubka języka i kontrolę ruchów na podniebieniu.</div>
+          <div class="exercise-item"><strong>Rybka</strong> — Cmokanie wargami jak rybka. Wzmacnia mięsień okrężny ust, ćwiczy zaokrąglanie warg (ważne dla głosek: u, o, sz, ż, cz, dż).</div>
+          <div class="exercise-item"><strong>Uśmiech–Dzióbek</strong> — Naprzemiennie szeroki uśmiech i zaokrąglone usta. Ćwiczy szybkie przechodzenie między pozycjami warg.</div>
+        </div>
+      </section>
+
+      <section class="rules-section">
+        <h2>Słuch fonematyczny</h2>
+        <div class="rules-badge">Dźwiękowe Memory</div>
+        <h3>Dlaczego jest ważny?</h3>
+        <p><strong>Słuch fonematyczny</strong> to zdolność rozróżniania najmniejszych jednostek dźwiękowych mowy — fonemów. Jest to umiejętność różna od słuchu fizjologicznego! Dziecko może mieć doskonały słuch, a mimo to nie rozróżniać podobnych głosek (np. „s" i „sz", „k" i „g").</p>
+        <p>Zaburzony słuch fonematyczny prowadzi do:</p>
+        <ul>
+          <li>Trudności w rozróżnianiu głosek opozycyjnych</li>
+          <li>Problemów z artykulacją — dziecko nie słyszy różnicy, więc nie potrafi jej odtworzyć</li>
+          <li>Późniejszych trudności w nauce czytania i pisania (dysleksja, dysortografia)</li>
+        </ul>
+        <h3>Co ćwiczymy?</h3>
+        <ul>
+          <li><strong>Różnicowanie dźwięków</strong> — rozpoznawanie i porównywanie dźwięków</li>
+          <li><strong>Pamięć słuchowa</strong> — zapamiętywanie sekwencji dźwięków i ich lokalizacji</li>
+          <li><strong>Koncentracja uwagi słuchowej</strong> — skupienie na bodźcach słuchowych w zadaniu</li>
+        </ul>
+        <div class="rules-game-box">
+          <h4>Dźwiękowe Memory</h4>
+          <p>Odkrywaj karty ze zwierzętami — każda karta odtwarza charakterystyczny dźwięk. Zapamiętaj, które karty grały ten sam dźwięk i znajdź pary! <strong>Ćwiczy pamięć słuchową, koncentrację i zdolność porównywania dźwięków.</strong></p>
+        </div>
+      </section>
+
+      <section class="rules-section">
+        <h2>Poczucie rytmu i prozodia</h2>
+        <div class="rules-badge">Leśny Bębenek</div>
+        <h3>Dlaczego są ważne?</h3>
+        <p>Prozodia to <strong>„muzyka mowy"</strong> — melodia, rytm, akcent i tempo wypowiedzi. Dzieci z zaburzeniami mowy często mają trudności z odtwarzaniem wzorców rytmicznych. <strong>Logorytmika</strong> (metoda łącząca muzykę, ruch i mowę) jest uznaną metodą wspierającą terapię logopedyczną.</p>
+        <p>Poczucie rytmu wspiera:</p>
+        <ul>
+          <li>Płynność mowy i naturalną intonację</li>
+          <li>Prawidłową akcentację wyrazów i zdań</li>
+          <li>Koordynację słuchowo-ruchową</li>
+          <li>Segmentację mowy na sylaby i wyrazy (ważne dla nauki czytania i pisania)</li>
+        </ul>
+        <div class="rules-game-box">
+          <h4>Leśny Bębenek</h4>
+          <p>Posłuchaj wzorca rytmicznego, który zagra Wiewiórka, a następnie odtwórz go stukając w bęben. Wzorce stają się coraz bardziej złożone! <strong>Ćwiczy percepcję rytmu, pamięć sekwencyjną i koordynację słuchowo-ruchową.</strong></p>
+        </div>
+      </section>
+
+      <section class="rules-section rules-last">
+        <div class="rules-box rules-box-important">
+          <p><strong>Pamiętaj!</strong> Te gry są <strong>uzupełnieniem</strong>, a nie zamiennikiem profesjonalnej terapii logopedycznej. Jeśli masz wątpliwości dotyczące rozwoju mowy dziecka, skonsultuj się z logopedą.</p>
+          <p class="rules-cta"><a href="https://polanaprzygody.pl" target="_blank">Polana Przygody — Centrum Rozwoju Dziecka, Wrocław</a></p>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <!-- ===== GAME INFO OVERLAY ===== -->
+  <div id="game-info" class="overlay hidden">
+    <div class="info-content">
+      <button class="btn-close" id="btn-close-info">
+        <svg viewBox="0 0 24 24" width="28" height="28"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+      </button>
+      <div id="game-info-body"></div>
+      <button class="btn-start" id="btn-start-game">Graj!</button>
+    </div>
+  </div>
+
+  <!-- ===== MIC PERMISSION ===== -->
+  <div id="mic-prompt" class="overlay hidden">
+    <div class="mic-prompt-box">
+      <div class="mic-prompt-icon">🎤</div>
+      <h2>Potrzebujemy mikrofonu!</h2>
+      <p>Ta gra wykrywa dmuchanie przez mikrofon. Kliknij „Zezwól" gdy przeglądarka zapyta o pozwolenie.</p>
+      <button class="btn-mic-go" id="btn-mic-go">Włącz mikrofon</button>
+      <button class="btn-mic-skip" id="btn-mic-skip">Graj bez mikrofonu</button>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
